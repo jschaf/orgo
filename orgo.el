@@ -32,3 +32,15 @@
 
 (require 's)
 (require 'dash)
+
+
+(defun orgo-goto-nearest-publishable-parent ()
+  "Actual posts NEED a TODO state.
+So we go up the tree until we reach one."
+  (if (org-entry-get (point) "TODO" nil t)
+      (org-backward-heading-same-level 0)
+    (while (null (org-entry-get (point) "TODO" nil t))
+      (outline-up-heading 1 t))))
+
+(provide 'orgo)
+;;; orgo.el ends here

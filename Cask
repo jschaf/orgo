@@ -1,7 +1,8 @@
 (source gnu)
 (source melpa)
 
-(package-file "TODO")
+(package-file "orgo.el")
+(files "orgo.el")
 
 (development
  (depends-on "f")

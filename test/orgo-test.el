@@ -28,6 +28,7 @@
      (insert ,str)
      (goto-char (point-min))
      (org-mode)
+     (outline-show-all)
      (if (search-forward orgo/cursor-placeholder nil t)
          (progn
            (replace-match "")
@@ -118,20 +119,20 @@ ARGS are the arguments to FUNCTION."
      (orgo-get-entry-title)))                                                )
 
 (ert-deftest orgo-test/get-entry-title-gets-a-title ()
-  ;;   (should
-  ;;    (equal
-  ;;     "header"
-  ;;     (orgo-test/with-mock-buffer
-  ;;         "* TODO header -!-"
-  ;;       (orgo-get-entry-title))))
+  (should
+   (equal
+    "header"
+    (orgo-test/with-mock-buffer
+        "* TODO header -!-"
+      (orgo-get-entry-title))))
 
-  ;;   (should
-  ;;    (equal
-  ;;     "header"
-  ;;     (orgo-test/with-mock-buffer
-  ;;         "* TODO header
-  ;; ** Other header-!-"
-  ;;       (orgo-get-entry-title))))
+  (should
+   (equal
+    "header"
+    (orgo-test/with-mock-buffer
+        "* TODO header
+  ** Other header-!-"
+      (orgo-get-entry-title))))
 
   (should
    (equal

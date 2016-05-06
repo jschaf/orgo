@@ -122,9 +122,18 @@ compared to the expected value using `equal'."
   (orgo-test/expected-matches-buffer-for-each
    '(("header" . "* TODO header -!-")
      ("header" . "* TODO header\n** Other header-!-")
+     ("header with spaces" . "* TODO header with spaces\n** Other header-!-")
      ("Other header"  ."* TODO header\n** TODO Other header-!-"))
    #'orgo-get-raw-entry-title))
 
+(ert-deftest orgo-test/get-entry-title-gets-a-title ()
+  (orgo-test/expected-matches-buffer-for-each
+   '(("header" . "* TODO header -!-")
+     ("header" . "* TODO header\n** Other header-!-")
+     ("header-with-spaces" . "* TODO header with spaces\n** Other header-!-")
+     ("header-spaces" . "* TODO header (with) spaces\n** Other header-!-")
+     ("other-header"  ."* TODO header\n** TODO Other header-!-"))
+   #'orgo-get-entry-title))
 
 (ert-deftest orgo-test/publish-entry-errors-if-not-in-tree ()
   (should-error

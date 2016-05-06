@@ -7,7 +7,7 @@
 ;;; Code:
 
 (defvar orgo-test/test-path
-  (directory-file-name (file-name-directory load-file-name))
+  (directory-file-name (file-name-directory (or load-file-name (buffer-file-name))))
   "Path to tests directory.")
 
 (defvar orgo-test/root-path
@@ -15,7 +15,6 @@
   "Path to root directory.")
 
 (load (expand-file-name "orgo" orgo-test/root-path) 'noerror 'nomessage)
-
 (require 'ert)
 (require 's)
 
@@ -81,8 +80,79 @@ ARGS are the arguments to FUNCTION."
   (orgo-test/assert-point-changes
    "* not a post header<^>-!-
 * TODO post header"
-   #'orgo-goto-nearest-publishable-parent)
-  )
+   #'orgo-goto-nearest-publishable-parent))
+
+(ert-deftest orgo-test/goto-nearest-publishable-parent-returns-nil ()
+  "Assert that we get nil if we don't move"
+  (should
+   (equal nil
+          (orgo-test/with-mock-buffer
+              "-!-"
+            (orgo-goto-nearest-publishable-parent)))))
+
+(ert-deftest orgo-test/goto-nearest-publishable-parent-returns-point ()
+  "Assert that we get the new point if we do move."
+  (should
+   (equal 1
+          (orgo-test/with-mock-buffer
+              "* TODO header
+-!-"
+            (orgo-goto-nearest-publishable-parent)))))
+
+(ert-deftest orgo-test/publishable-tree-p-works ()
+  (should
+   (equal t
+          (orgo-test/with-mock-buffer
+              "* TODO header -!-"
+            (orgo-publishable-tree-p))))
+  (should
+   (equal nil
+          (orgo-test/with-mock-buffer
+              "* header -!-"
+            (orgo-publishable-tree-p)))))
+
+(ert-deftest orgo-test/get-entry-title-errors-if-not-in-tree ()
+  (should-error
+   (orgo-test/with-mock-buffer
+       "* header -!-"
+     (orgo-get-entry-title)))                                                )
+
+(ert-deftest orgo-test/get-entry-title-gets-a-title ()
+  ;;   (should
+  ;;    (equal
+  ;;     "header"
+  ;;     (orgo-test/with-mock-buffer
+  ;;         "* TODO header -!-"
+  ;;       (orgo-get-entry-title))))
+
+  ;;   (should
+  ;;    (equal
+  ;;     "header"
+  ;;     (orgo-test/with-mock-buffer
+  ;;         "* TODO header
+  ;; ** Other header-!-"
+  ;;       (orgo-get-entry-title))))
+
+  (should
+   (equal
+    "Other header"
+    (orgo-test/with-mock-buffer
+        "* TODO header
+
+** TODO Other header-!-"
+      (orgo-get-entry-title)))))
+
+
+(ert-deftest orgo-test/publish-entry-errors-if-not-in-tree ()
+  (should-error
+   (orgo-test/with-mock-buffer
+       "* header -!-"
+     (orgo-publish-entry)))
+  (should-error
+   (orgo-test/with-mock-buffer
+       "-!-
+* TODO header"
+     (orgo-publish-entry))))
 
 
 (provide 'orgo-test)

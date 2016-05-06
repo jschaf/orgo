@@ -47,11 +47,30 @@ leave point unchanged."
               (outline-up-heading 1 t)))
           (point))
       (error
-       (goto-char old-point)))))
+       (goto-char old-point)
+       nil))))
+
+(defun orgo-publishable-tree-p ()
+  "Return t if in a publishable tree."
+  (save-excursion
+    (and (orgo-goto-nearest-publishable-parent) t)))
+
+(defun orgo-validate-is-publishable ()
+  "Check if we're in a publishable tree, otherwise error out."
+  (unless (orgo-publishable-tree-p)
+    (error "Not in an org tree that is publishable.  No parent
+ tree is marked with a TODO state")))
+
+(defun orgo-get-entry-title ()
+  "Get the title of the publishable entry."
+  (orgo-validate-is-publishable)
+  (save-excursion
+    (orgo-goto-nearest-publishable-parent)
+    (substring-no-properties (org-get-heading 'no-tags 'no-todo))))
 
 (defun orgo-publish-entry ()
   "Marks current entry as DONE and writes it to a file for Hugo."
-  ;; check for subtree
+  (orgo-validate-is-publishable)
   ;; get title
   ;; get content
   ;; convert to markdown

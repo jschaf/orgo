@@ -17,6 +17,7 @@
 (load (expand-file-name "orgo" orgo-test/root-path) 'noerror 'nomessage)
 (require 'ert)
 (require 's)
+(require 'dash)
 
 (defvar orgo/cursor-placeholder "-!-"
   "Representation of a cursor in a buffer.")
@@ -155,6 +156,17 @@ ARGS are the arguments to FUNCTION."
 * TODO header"
      (orgo-publish-entry))))
 
+(ert-deftest orgo/sanitize-file-name ()
+  (-each '(("" . "")
+           ("a" . "a")
+           ("a b" . "a-b")
+           ("a b  c" . "a-b-c")
+           ("a(b)" . "a")
+           ("a1" . "a1")
+           ("a++~" . "a-"))
+    (lambda (elem)
+      (should (equal (cdr elem)
+                     (orgo-sanitize-file-name (car elem)))))))
 
 (provide 'orgo-test)
 ;;; orgo-test.el ends here

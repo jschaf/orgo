@@ -68,14 +68,34 @@ leave point unchanged."
     (orgo-goto-nearest-publishable-parent)
     (substring-no-properties (org-get-heading 'no-tags 'no-todo))))
 
+(defun orgo-sanitize-file-name (name)
+  "Make NAME safe for filenames.
+Performs the following transformations:
+1. downcases the string
+2. removes any occurrence of parentheses including the content between
+   the parenthesis
+3. trims the result
+4. transforms anything that's not alphanumeric into dashes"
+  (require 'url-util)
+  (require 'subr-x)
+  (url-hexify-string
+   (downcase
+    (replace-regexp-in-string
+     "[^[:alnum:]]+" "-"
+     (string-trim
+      (replace-regexp-in-string
+       "(.*)" "" name))))))
+
 (defun orgo-publish-entry ()
   "Marks current entry as DONE and writes it to a file for Hugo."
   (orgo-validate-is-publishable)
-  ;; get title
+  (let ((raw-title (orgo-get-entry-title))
+        (title (orgo-sanitize-file-name raw-title)))
+
+    )
   ;; get content
   ;; convert to markdown
   ;; write file
- 
   )
 
 

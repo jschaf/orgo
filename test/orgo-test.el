@@ -158,5 +158,13 @@ compared to the expected value using `equal'."
       (should (equal (cdr elem)
                      (orgo-sanitize-file-name (car elem)))))))
 
+(ert-deftest orgo-test/get-raw-entry-works ()
+  (orgo-test/expected-matches-buffer-for-each
+   '(("* TODO header\na sentence." . "* TODO header\na sentence.-!-")
+     ("* TODO header\n** Other header" . "* TODO header\n** Other header-!-")
+     ("** TODO header 2" . "* TODO header 1\n** TODO header 2-!-"))
+   #'orgo-get-raw-entry-content))
+
+
 (provide 'orgo-test)
 ;;; orgo-test.el ends here

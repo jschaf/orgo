@@ -97,12 +97,13 @@ Performs the following transformations:
   "Get the string of the current publishable entry."
   (orgo-validate-is-publishable)
   (save-excursion
-    (orgo-goto-nearest-publishable-parent)
-    (org-narrow-to-subtree)
-    (buffer-string)))
+    (save-restriction
+      (orgo-goto-nearest-publishable-parent)
+      (org-narrow-to-subtree)
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun orgo-publish-entry ()
-  "Mark current entry as DONE and writes it to a file for Hugo."
+  "Mark current entry as DONE and write it to a file for Hugo."
   (orgo-validate-is-publishable)
   (let ((title (orgo-get-entry-title)))
 

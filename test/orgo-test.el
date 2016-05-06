@@ -6,7 +6,17 @@
 
 ;;; Code:
 
-(load (expand-file-name "orgo.el" default-directory))
+(defvar orgo-test/test-path
+  (directory-file-name (file-name-directory load-file-name))
+  "Path to tests directory.")
+
+(defvar orgo-test/root-path
+  (directory-file-name (file-name-directory orgo-test/test-path))
+  "Path to root directory.")
+
+(load (expand-file-name "orgo" orgo-test/root-path) 'noerror 'nomessage)
+
+(require 'ert)
 (require 's)
 
 (defvar orgo/cursor-placeholder "-!-"
@@ -20,7 +30,9 @@
      (goto-char (point-min))
      (org-mode)
      (if (search-forward orgo/cursor-placeholder nil t)
-         (replace-match "")
+         (progn
+           (replace-match "")
+           (goto-char (match-beginning 0)))
        (goto-char (point-min)))
      ,@body))
 
@@ -34,9 +46,11 @@ ARGS are the arguments to FUNCTION."
     (error "The buffer-string must contain <!> to indicate the
     new point location"))
 
-  (let ((new-point-position (caar (s-matched-positions-all
-                                    "<^>"
-                                    buffer-string)))
+  (let ((new-point-position
+         ;; Add 1 because buffers start at 1, but strings start at 0
+         (1+ (caar (s-matched-positions-all
+                    "<^>"
+                    buffer-string))))
         (clean-buffer-string (s-replace "<^>" "" buffer-string)))
     (orgo-test/with-mock-buffer clean-buffer-string
       (apply function args)
@@ -45,15 +59,30 @@ ARGS are the arguments to FUNCTION."
 (ert-deftest orgo-test/goto-nearest-publishable-parent ()
   "Assert that the point moves to the nearest TODO header."
   (orgo-test/assert-point-changes
-      "*<^> TODO header 1
+   "<^>* TODO header 1
 -!-"
-      #'orgo-goto-nearest-publishable-parent)
+   #'orgo-goto-nearest-publishable-parent)
   (orgo-test/assert-point-changes
-   "*<^> TODO header 1
+   "<^>* TODO header 1
 
 ** header 2
 -!-"
    #'orgo-goto-nearest-publishable-parent))
+
+(ert-deftest orgo-test/goto-nearest-publishable-parent-nil ()
+  "Assert that the point doesn't change if there is no TODO
+  handler post to move to."
+  (orgo-test/assert-point-changes
+   "<^>-!-"
+   #'orgo-goto-nearest-publishable-parent)
+  (orgo-test/assert-point-changes
+   "* not a post header<^>-!-"
+   #'orgo-goto-nearest-publishable-parent)
+  (orgo-test/assert-point-changes
+   "* not a post header<^>-!-
+* TODO post header"
+   #'orgo-goto-nearest-publishable-parent)
+  )
 
 
 (provide 'orgo-test)

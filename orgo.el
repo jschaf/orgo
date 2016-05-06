@@ -35,12 +35,31 @@
 
 
 (defun orgo-goto-nearest-publishable-parent ()
-  "Actual posts NEED a TODO state.
-So we go up the tree until we reach one."
-  (if (org-entry-get (point) "TODO" nil t)
-      (org-backward-heading-same-level 0)
-    (while (null (org-entry-get (point) "TODO" nil t))
-      (outline-up-heading 1 t))))
+  "Go to first sub-tree with a TODO state and return `point'.
+If there is no parent tree with a TODO state, return nil and
+leave point unchanged."
+  (let ((old-point (point)))
+    (condition-case nil
+        (progn
+          (if (org-entry-get (point) "TODO" nil t)
+              (org-backward-heading-same-level 0)
+            (while (null (org-entry-get (point) "TODO" nil t))
+              (outline-up-heading 1 t)))
+          (point))
+      (error
+       (goto-char old-point)))))
+
+(defun orgo-publish-entry ()
+  "Marks current entry as DONE and writes it to a file for Hugo."
+  ;; check for subtree
+  ;; get title
+  ;; get content
+  ;; convert to markdown
+  ;; write file
+ 
+  )
+
+
 
 (provide 'orgo)
 ;;; orgo.el ends here

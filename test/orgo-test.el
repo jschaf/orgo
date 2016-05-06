@@ -7,6 +7,8 @@
 ;;; Code:
 
 (defvar orgo-test/test-path
+  ;; load-file-name for non-interactive use, buffer-file-name for interactive
+  ;; use
   (directory-file-name (file-name-directory (or load-file-name (buffer-file-name))))
   "Path to tests directory.")
 
@@ -114,7 +116,7 @@ ARGS are the arguments to FUNCTION."
   (should-error
    (orgo-test/with-mock-buffer
        "* header -!-"
-     (orgo-get-entry-title)))                                                )
+     (orgo-get-raw-entry-title)))                                                )
 
 (ert-deftest orgo-test/get-entry-title-gets-a-title ()
   (should
@@ -122,7 +124,7 @@ ARGS are the arguments to FUNCTION."
     "header"
     (orgo-test/with-mock-buffer
         "* TODO header -!-"
-      (orgo-get-entry-title))))
+      (orgo-get-raw-entry-title))))
 
   (should
    (equal
@@ -130,7 +132,7 @@ ARGS are the arguments to FUNCTION."
     (orgo-test/with-mock-buffer
         "* TODO header
   ** Other header-!-"
-      (orgo-get-entry-title))))
+      (orgo-get-raw-entry-title))))
 
   (should
    (equal
@@ -139,7 +141,7 @@ ARGS are the arguments to FUNCTION."
         "* TODO header
 
 ** TODO Other header-!-"
-      (orgo-get-entry-title)))))
+      (orgo-get-raw-entry-title)))))
 
 
 (ert-deftest orgo-test/publish-entry-errors-if-not-in-tree ()

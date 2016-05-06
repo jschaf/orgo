@@ -28,10 +28,13 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
-(require 's)
 (require 'dash)
+(require 'org)
+(require 's)
 
 
 (defun orgo-goto-nearest-publishable-parent ()
@@ -61,7 +64,7 @@ leave point unchanged."
     (error "Not in an org tree that is publishable.  No parent
  tree is marked with a TODO state")))
 
-(defun orgo-get-entry-title ()
+(defun orgo-get-raw-entry-title ()
   "Get the title of the publishable entry."
   (orgo-validate-is-publishable)
   (save-excursion
@@ -82,15 +85,26 @@ Performs the following transformations:
    (downcase
     (replace-regexp-in-string
      "[^[:alnum:]]+" "-"
-     (string-trim
+     (s-trim
       (replace-regexp-in-string
        "(.*)" "" name))))))
 
-(defun orgo-publish-entry ()
-  "Marks current entry as DONE and writes it to a file for Hugo."
+(defun orgo-get-entry-title ()
+  "Get the sanitized title of the publishable entry."
+  (orgo-sanitize-file-name (orgo-get-raw-entry-title)))
+
+(defun orgo-get-raw-entry-content ()
+  "Get the string of the current publishable entry."
   (orgo-validate-is-publishable)
-  (let ((raw-title (orgo-get-entry-title))
-        (title (orgo-sanitize-file-name raw-title)))
+  (save-excursion
+    (orgo-goto-nearest-publishable-parent)
+    (org-narrow-to-subtree)
+    (buffer-string)))
+
+(defun orgo-publish-entry ()
+  "Mark current entry as DONE and writes it to a file for Hugo."
+  (orgo-validate-is-publishable)
+  (let ((title (orgo-get-entry-title)))
 
     )
   ;; get content

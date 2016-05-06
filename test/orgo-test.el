@@ -37,14 +37,11 @@
        (goto-char (point-min)))
      ,@body))
 
-(defvar orgo-test/new-point-placeholder "<^>"
-  "The placeholder indicating where the new point should be.")
-
 (defun orgo-test/assert-point-changes (buffer-string function &rest args)
   "Assert that BUFFER-STRING match what FUNCTION does.
 ARGS are the arguments to FUNCTION."
-  (unless (s-contains? orgo-test/new-point-placeholder buffer-string)
-    (error "The buffer-string must contain <!> to indicate the
+  (unless (s-contains? "<^>" buffer-string)
+    (error "The buffer-string must contain <^> to indicate the
     new point location"))
 
   (let ((new-point-position

@@ -56,32 +56,38 @@ ARGS are the arguments to FUNCTION."
       (apply function args)
       (should (equal new-point-position (point))))))
 
+(defun orgo-test/expected-matches-buffer-for-each (inputs function)
+  "Test each element INPUTS using FUNCTION.
+INPUTS is an alist of the expected value and a string
+representing the buffer.  FUNCTION is applied to each string and
+compared to the expected value using `equal'."
+  (-each inputs
+    (lambda (elem)
+      (let ((expected (car elem))
+            (input-string (cdr elem)))
+        (should (equal expected
+                       (orgo-test/with-mock-buffer input-string
+                         (funcall function))))))))
+
 (ert-deftest orgo-test/goto-nearest-publishable-parent ()
   "Assert that the point moves to the nearest TODO header."
-  (orgo-test/assert-point-changes
-   "<^>* TODO header 1
--!-"
-   #'orgo-goto-nearest-publishable-parent)
-  (orgo-test/assert-point-changes
-   "<^>* TODO header 1
+  (-each
+      '("<^>* TODO header 1\n-!-"
+        "<^>* TODO header 1\n\n** header 2\n-!-")
+    (lambda (buffer-string)
+      (orgo-test/assert-point-changes
+       buffer-string
+       #'orgo-goto-nearest-publishable-parent))))
 
-** header 2
--!-"
-   #'orgo-goto-nearest-publishable-parent))
-
-(ert-deftest orgo-test/goto-nearest-publishable-parent-nil ()
-  "Assert that the point doesn't change if there is no TODO
-  handler post to move to."
-  (orgo-test/assert-point-changes
-   "<^>-!-"
-   #'orgo-goto-nearest-publishable-parent)
-  (orgo-test/assert-point-changes
-   "* not a post header<^>-!-"
-   #'orgo-goto-nearest-publishable-parent)
-  (orgo-test/assert-point-changes
-   "* not a post header<^>-!-
-* TODO post header"
-   #'orgo-goto-nearest-publishable-parent))
+(ert-deftest orgo-test/goto-nearest-publishable-parent-doesnt-move ()
+  (-each
+      '("<^>-!-"
+        "* not a post header<^>-!-"
+        "* not a post header<^>-!-\n* TODO post header")
+    (lambda (buffer-string)
+      (orgo-test/assert-point-changes
+       buffer-string
+       #'orgo-goto-nearest-publishable-parent))))
 
 (ert-deftest orgo-test/goto-nearest-publishable-parent-returns-nil ()
   "Assert that we get nil if we don't move"
@@ -101,47 +107,23 @@ ARGS are the arguments to FUNCTION."
             (orgo-goto-nearest-publishable-parent)))))
 
 (ert-deftest orgo-test/publishable-tree-p-works ()
-  (should
-   (equal t
-          (orgo-test/with-mock-buffer
-              "* TODO header -!-"
-            (orgo-publishable-tree-p))))
-  (should
-   (equal nil
-          (orgo-test/with-mock-buffer
-              "* header -!-"
-            (orgo-publishable-tree-p)))))
+  (orgo-test/expected-matches-buffer-for-each
+   '((t . "* TODO header -!-")
+     (nil . "* header -!-"))
+   #'orgo-publishable-tree-p))
 
-(ert-deftest orgo-test/get-entry-title-errors-if-not-in-tree ()
+(ert-deftest orgo-test/get-raw-entry-title-errors-if-not-in-tree ()
   (should-error
    (orgo-test/with-mock-buffer
        "* header -!-"
      (orgo-get-raw-entry-title)))                                                )
 
-(ert-deftest orgo-test/get-entry-title-gets-a-title ()
-  (should
-   (equal
-    "header"
-    (orgo-test/with-mock-buffer
-        "* TODO header -!-"
-      (orgo-get-raw-entry-title))))
-
-  (should
-   (equal
-    "header"
-    (orgo-test/with-mock-buffer
-        "* TODO header
-  ** Other header-!-"
-      (orgo-get-raw-entry-title))))
-
-  (should
-   (equal
-    "Other header"
-    (orgo-test/with-mock-buffer
-        "* TODO header
-
-** TODO Other header-!-"
-      (orgo-get-raw-entry-title)))))
+(ert-deftest orgo-test/get-raw-entry-title-gets-a-title ()
+  (orgo-test/expected-matches-buffer-for-each
+   '(("header" . "* TODO header -!-")
+     ("header" . "* TODO header\n** Other header-!-")
+     ("Other header"  ."* TODO header\n** TODO Other header-!-"))
+   #'orgo-get-raw-entry-title))
 
 
 (ert-deftest orgo-test/publish-entry-errors-if-not-in-tree ()

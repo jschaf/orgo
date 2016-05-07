@@ -36,7 +36,6 @@
 (require 'org)
 (require 's)
 
-
 (defun orgo-goto-nearest-publishable-parent ()
   "Go to first sub-tree with a TODO state and return `point'.
 If there is no parent tree with a TODO state, return nil and
@@ -101,6 +100,15 @@ Performs the following transformations:
       (orgo-goto-nearest-publishable-parent)
       (org-narrow-to-subtree)
       (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defun orgo-get-front-matter ()
+  "Return everything before the first headline in current buffer.
+If there are no headlines, return the empty string."
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward-regexp "^\\*+ " nil t)
+        (buffer-substring-no-properties (point-min) (match-beginning 0))
+      "")))
 
 (defun orgo-publish-entry ()
   "Mark current entry as DONE and write it to a file for Hugo."

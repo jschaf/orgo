@@ -165,6 +165,14 @@ compared to the expected value using `equal'."
      ("** TODO header 2" . "* TODO header 1\n** TODO header 2-!-"))
    #'orgo-get-raw-entry-content))
 
+(ert-deftest orgo-test/get-front-matter-works ()
+  (orgo-test/expected-matches-buffer-for-each
+   '(("". "-!-")
+     ("" . "joe\nfake* heading")
+     ("" . "* TODO header\n** Other header-!-")
+     ("" . "* header\n** Other header-!-")
+     ("frontmatter\n" . "frontmatter\n* TODO header\na sentence.-!-"))
+   #'orgo-get-front-matter))
 
 (provide 'orgo-test)
 ;;; orgo-test.el ends here
